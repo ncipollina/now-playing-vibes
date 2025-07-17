@@ -98,12 +98,12 @@
             
             if (response.IsSuccessStatusCode)
             {
-                successMessage = "Vibe submitted successfully! 🎉";
+                successMessage = "Vibe submitted successfully! 🎉 Redirecting to home...";
                 vibeRequest = new VibeRequest(); // Reset form
                 
-                // Auto-navigate to view vibes after 2 seconds
+                // Auto-navigate to home after 2 seconds
                 await Task.Delay(2000);
-                Navigation.NavigateTo("/view-vibes");
+                Navigation.NavigateTo("/");
             }
             else
             {

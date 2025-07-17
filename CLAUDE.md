@@ -15,13 +15,21 @@ The app allows users to submit "vibes" (mood categories with messages about what
 
 ## Project Structure
 
-The intended project structure is:
+The actual project structure is:
 ```
 VibeTracker.sln
 ├── src/
 │   ├── VibeTracker.Server/     # Minimal API + FastEndpoints + Dapper
-│   ├── VibeTracker.Client/     # Blazor WebAssembly frontend  
-│   └── VibeTracker.Shared/     # Shared DTOs (optional)
+│   │   ├── Data/               # Database initialization and repository
+│   │   ├── Endpoints/          # FastEndpoints API endpoints
+│   │   └── Program.cs          # Application startup and configuration
+│   ├── VibeTracker.Client/     # Blazor WebAssembly frontend
+│   │   ├── Components/Pages/   # Blazor pages (SubmitVibe, ViewVibes)
+│   │   ├── Layout/            # Navigation and layout components
+│   │   └── Program.cs         # Client app configuration
+│   └── VibeTracker.Shared/     # Shared DTOs
+│       ├── VibeRequest.cs     # Request model for submitting vibes
+│       └── VibeEntry.cs       # Response model for vibe entries
 ```
 
 ## Development Commands
@@ -77,8 +85,28 @@ CREATE TABLE IF NOT EXISTS Vibes (
 
 ## Implementation Notes
 
-- Enable CORS in backend for Blazor client communication
-- Use `IVibeRepository` pattern with Dapper for data access
+- CORS is enabled in backend for Blazor client communication
+- Uses `IVibeRepository` pattern with Dapper for data access
 - Database initialization runs on app startup via `CREATE TABLE IF NOT EXISTS`
-- Repository and endpoints should be registered in `Program.cs`
-- Update `NavMenu.razor` to include navigation links for both pages
+- Repository and endpoints are registered in `Program.cs`
+- `NavMenu.razor` includes navigation links for Submit Vibe and View Vibes pages
+- SQLite database file (`vibes.db`) is created in the server project directory
+- Client connects to server on `http://localhost:5250` (configurable in `Program.cs`)
+- Server runs on port 5249 by default (configurable in `launchSettings.json`)
+
+## Running the Application
+
+1. **Start the Server**: `dotnet run --project src/VibeTracker.Server`
+2. **Start the Client**: `dotnet run --project src/VibeTracker.Client`
+3. **Access the App**: Navigate to the client URL (typically `http://localhost:5285`)
+
+## Features Implemented
+
+- ✅ Submit Vibe page with dropdown selection and message input
+- ✅ View Vibes page with card-based layout and timestamps
+- ✅ Emoji support for different vibe types
+- ✅ Relative time display ("2 minutes ago", "1 hour ago", etc.)
+- ✅ Responsive Bootstrap styling
+- ✅ Form validation and loading states
+- ✅ Auto-navigation after successful submission
+- ✅ Error handling for API failures
