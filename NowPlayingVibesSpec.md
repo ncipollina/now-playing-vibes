@@ -84,31 +84,41 @@ CREATE TABLE IF NOT EXISTS Vibes (
 ## ✅ Task List
 
 ### SETUP
-- [ ] Create solution with 3 projects: Server, Client, Shared
-- [ ] Enable CORS in backend for Blazor client
+- [x] Create solution with 3 projects: Server, Client, Shared
+- [x] Enable CORS in backend for Blazor client
 
 ### DATABASE
-- [ ] Add SQLite NuGet package: `Microsoft.Data.Sqlite`
-- [ ] On app startup, run `CREATE TABLE IF NOT EXISTS` via Dapper
+- [x] Add SQLite NuGet package: `Microsoft.Data.Sqlite`
+- [x] On app startup, run `CREATE TABLE IF NOT EXISTS` via Dapper
 
 ### BACKEND (Server)
-- [ ] Create DTOs: `VibeRequest`, `VibeEntry`
-- [ ] Create `IVibeRepository` and `VibeRepository` (using Dapper)
-- [ ] Add POST endpoint to insert vibe into DB
-- [ ] Add GET endpoint to retrieve all vibes
-- [ ] Register Dapper + repo + endpoints in `Program.cs`
+- [x] Create DTOs: `VibeRequest`, `VibeEntry`
+- [x] Create `IVibeRepository` and `VibeRepository` (using Dapper)
+- [x] Add POST endpoint to insert vibe into DB
+- [x] Add GET endpoint to retrieve all vibes
+- [x] Register Dapper + repo + endpoints in `Program.cs`
 
 ### FRONTEND (Client)
-- [ ] Add dropdown with predefined vibes
-- [ ] Create `SubmitVibe.razor` with form and HTTP POST to API
-- [ ] Create `ViewVibes.razor` that fetches and displays entries
-- [ ] Update `NavMenu.razor` to link both pages
+- [x] Add dropdown with predefined vibes
+- [x] Create `SubmitVibe.razor` with form and HTTP POST to API
+- [x] Create `ViewVibes.razor` that fetches and displays entries
+- [x] Update `NavMenu.razor` to link both pages
 
 ### OPTIONAL/EXTRA
-- [ ] Add emoji icons next to vibes
-- [ ] Use random pastel background per card
-- [ ] Add toast notifications or form validation
-- [ ] Display relative time (e.g., “2 minutes ago”)
+- [x] Add emoji icons next to vibes
+- [x] Use random pastel background per card
+- [x] Add toast notifications or form validation
+- [x] Display relative time (e.g., "2 minutes ago")
+
+### BONUS FEATURES ADDED
+- [x] Enhanced UX with View Vibes as home page
+- [x] Responsive Bootstrap styling with beautiful gradients
+- [x] Form validation with loading states
+- [x] Auto-navigation after successful submission
+- [x] Comprehensive error handling
+- [x] Dismissible toast notifications with icons
+- [x] PowerShell and batch startup scripts
+- [x] Comprehensive documentation and README files
 
 ---
 

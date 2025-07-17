@@ -57,15 +57,19 @@
 
                     @if (!string.IsNullOrEmpty(successMessage))
                     {
-                        <div class="alert alert-success mt-3" role="alert">
+                        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                            <i class="bi bi-check-circle-fill me-2"></i>
                             @successMessage
+                            <button type="button" class="btn-close" @onclick="() => successMessage = string.Empty"></button>
                         </div>
                     }
 
                     @if (!string.IsNullOrEmpty(errorMessage))
                     {
-                        <div class="alert alert-danger mt-3" role="alert">
+                        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
                             @errorMessage
+                            <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
                         </div>
                     }
                 </div>
