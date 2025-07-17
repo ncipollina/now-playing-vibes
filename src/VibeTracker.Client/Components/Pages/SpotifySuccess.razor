@@ -1,0 +1,80 @@
+@page "/spotify-success"
+@inject NavigationManager Navigation
+
+<PageTitle>Spotify Connected</PageTitle>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    <h2 class="text-success">Successfully Connected to Spotify!</h2>
+                    <p class="lead">Your Spotify account is now connected to Now Playing Vibes.</p>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="bi bi-search text-primary" style="font-size: 2rem;"></i>
+                                    <h5 class="mt-2">Discover Music</h5>
+                                    <p class="small">Find tracks and playlists that match your vibes</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="bi bi-play-circle text-success" style="font-size: 2rem;"></i>
+                                    <h5 class="mt-2">Preview & Play</h5>
+                                    <p class="small">Listen to 30-second previews or full tracks (Premium)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <i class="bi bi-people text-info" style="font-size: 2rem;"></i>
+                                    <h5 class="mt-2">Share</h5>
+                                    <p class="small">Share your music discoveries with your team</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button class="btn btn-success btn-lg me-3" @onclick="NavigateToSubmitVibe">
+                            <i class="bi bi-music-note me-2"></i>
+                            Submit a Vibe
+                        </button>
+                        <button class="btn btn-primary btn-lg" @onclick="NavigateToHome">
+                            <i class="bi bi-house me-2"></i>
+                            View All Vibes
+                        </button>
+                    </div>
+
+                    <div class="mt-4">
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Your Spotify connection is secure and will remain active for 30 minutes of inactivity.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private void NavigateToSubmitVibe()
+    {
+        Navigation.NavigateTo("/submit-vibe");
+    }
+
+    private void NavigateToHome()
+    {
+        Navigation.NavigateTo("/");
+    }
+}

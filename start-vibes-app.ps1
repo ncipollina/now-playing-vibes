@@ -32,10 +32,10 @@ function Stop-ProcessOnPort {
         # macOS/Linux
         $processes = lsof -ti:$Port 2>/dev/null
         if ($processes) {
-            foreach ($pid in $processes) {
+            foreach ($processId in $processes) {
                 try {
-                    kill -9 $pid 2>/dev/null
-                    Write-Host "✅ Killed process $pid on port $Port" -ForegroundColor Green
+                    kill -9 $processId 2>/dev/null
+                    Write-Host "✅ Killed process $processId on port $Port" -ForegroundColor Green
                 } catch {
                     # Process might already be gone, ignore
                 }
@@ -55,7 +55,8 @@ function Wait-ForService {
     
     while ([DateTime]::Now -lt $timeout) {
         try {
-            $response = Invoke-WebRequest -Uri $Url -Method GET -TimeoutSec 5 -ErrorAction Stop
+            # Skip SSL certificate validation for development
+            $response = Invoke-WebRequest -Uri $Url -Method GET -TimeoutSec 5 -SkipCertificateCheck -ErrorAction Stop
             return $true
         } catch {
             Start-Sleep -Seconds 1
@@ -71,10 +72,14 @@ if (-not (Test-Path "VibeTracker.sln")) {
 }
 
 # Kill any existing processes on the ports we'll use
-Stop-ProcessOnPort -Port 5249 -Description "Server (default)"
-Stop-ProcessOnPort -Port 5250 -Description "Server (custom)"
-Stop-ProcessOnPort -Port 5285 -Description "Client (default)"
-Stop-ProcessOnPort -Port 5286 -Description "Client (custom)"
+Stop-ProcessOnPort -Port 3000 -Description "Server (HTTPS)"
+Stop-ProcessOnPort -Port 5287 -Description "Client (HTTPS)"
+Stop-ProcessOnPort -Port 8080 -Description "Server (old HTTPS)"
+Stop-ProcessOnPort -Port 7001 -Description "Server (old HTTPS)"
+Stop-ProcessOnPort -Port 5249 -Description "Server (default HTTP)"
+Stop-ProcessOnPort -Port 5250 -Description "Server (custom HTTP)"
+Stop-ProcessOnPort -Port 5285 -Description "Client (default HTTP)"
+Stop-ProcessOnPort -Port 5286 -Description "Client (custom HTTP)"
 
 # Kill any existing dotnet processes (more aggressive cleanup)
 Write-Host "🧹 Cleaning up existing dotnet processes..." -ForegroundColor Yellow
@@ -92,15 +97,15 @@ Write-Host "✅ Build successful!" -ForegroundColor Green
 
 # Start the server
 Write-Host "🚀 Starting the API server..." -ForegroundColor Blue
-$serverProcess = Start-Process -FilePath "dotnet" -ArgumentList "run", "--project", "src/VibeTracker.Server/VibeTracker.Server.csproj", "--urls", "http://localhost:5250" -PassThru
+$serverProcess = Start-Process -FilePath "dotnet" -ArgumentList "run", "--project", "src/VibeTracker.Server/VibeTracker.Server.csproj", "--urls", "http://127.0.0.1:3000" -PassThru
 
 # Wait a moment for server to start
 Start-Sleep -Seconds 3
 
 # Check if server is running
 Write-Host "⏳ Waiting for server to be ready..." -ForegroundColor Yellow
-if (Wait-ForService -Url "http://localhost:5250/vibes" -TimeoutSeconds 30) {
-    Write-Host "✅ Server is ready at http://localhost:5250" -ForegroundColor Green
+if (Wait-ForService -Url "http://127.0.0.1:3000/vibes" -TimeoutSeconds 30) {
+    Write-Host "✅ Server is ready at http://127.0.0.1:3000" -ForegroundColor Green
 } else {
     Write-Host "❌ Server failed to start or is not responding" -ForegroundColor Red
     Write-Host "🔍 Check the server logs above for errors" -ForegroundColor Yellow
@@ -109,15 +114,15 @@ if (Wait-ForService -Url "http://localhost:5250/vibes" -TimeoutSeconds 30) {
 
 # Start the client
 Write-Host "🚀 Starting the Blazor client..." -ForegroundColor Blue
-$clientProcess = Start-Process -FilePath "dotnet" -ArgumentList "run", "--project", "src/VibeTracker.Client/VibeTracker.Client.csproj", "--urls", "http://localhost:5286" -PassThru
+$clientProcess = Start-Process -FilePath "dotnet" -ArgumentList "run", "--project", "src/VibeTracker.Client/VibeTracker.Client.csproj", "--urls", "https://localhost:5287" -PassThru
 
 # Wait a moment for client to start
 Start-Sleep -Seconds 3
 
 # Check if client is running
 Write-Host "⏳ Waiting for client to be ready..." -ForegroundColor Yellow
-if (Wait-ForService -Url "http://localhost:5286" -TimeoutSeconds 30) {
-    Write-Host "✅ Client is ready at http://localhost:5286" -ForegroundColor Green
+if (Wait-ForService -Url "https://localhost:5287" -TimeoutSeconds 30) {
+    Write-Host "✅ Client is ready at https://localhost:5287" -ForegroundColor Green
 } else {
     Write-Host "❌ Client failed to start or is not responding" -ForegroundColor Red
     Write-Host "🔍 Check the client logs above for errors" -ForegroundColor Yellow
@@ -127,17 +132,17 @@ if (Wait-ForService -Url "http://localhost:5286" -TimeoutSeconds 30) {
 Write-Host ""
 Write-Host "🎉 Now Playing Vibes Application Started Successfully!" -ForegroundColor Green
 Write-Host "=================================================" -ForegroundColor Green
-Write-Host "🌐 API Server: http://localhost:5250" -ForegroundColor Cyan
-Write-Host "🎵 Web Client: http://localhost:5286" -ForegroundColor Cyan
+Write-Host "🌐 API Server: http://127.0.0.1:3000" -ForegroundColor Cyan
+Write-Host "🎵 Web Client: https://localhost:5287" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "📝 Instructions:" -ForegroundColor Yellow
-Write-Host "1. Open your browser to http://localhost:5286" -ForegroundColor White
+Write-Host "1. Open your browser to https://localhost:5287" -ForegroundColor White
 Write-Host "2. Use the navigation to submit vibes and view the vibe history" -ForegroundColor White
 Write-Host "3. Press Ctrl+C to stop both applications" -ForegroundColor White
 Write-Host ""
 Write-Host "🔍 API Endpoints:" -ForegroundColor Yellow
-Write-Host "- GET  http://localhost:5250/vibes (get all vibes)" -ForegroundColor White
-Write-Host "- POST http://localhost:5250/vibes (submit a new vibe)" -ForegroundColor White
+Write-Host "- GET  http://127.0.0.1:3000/vibes (get all vibes)" -ForegroundColor White
+Write-Host "- POST http://127.0.0.1:3000/vibes (submit a new vibe)" -ForegroundColor White
 Write-Host ""
 
 # Keep the script running and handle cleanup on exit
@@ -164,8 +169,8 @@ try {
     }
     
     # Clean up any remaining processes
-    Stop-ProcessOnPort -Port 5250 -Description "Server cleanup"
-    Stop-ProcessOnPort -Port 5286 -Description "Client cleanup"
+    Stop-ProcessOnPort -Port 3000 -Description "Server cleanup"
+    Stop-ProcessOnPort -Port 5287 -Description "Client cleanup"
     
     Write-Host "👋 Applications stopped. Thanks for using Now Playing Vibes!" -ForegroundColor Cyan
 }

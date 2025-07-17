@@ -27,7 +27,7 @@ Follow these steps to create your Spotify Developer account and configure the ap
    App Name: Now Playing Vibes
    App Description: A vibe-sharing app that plays music based on user's mood and shares music taste with team members
    Website: https://github.com/ncipollina/now-playing-vibes
-   Redirect URI: http://localhost:5250/callback/spotify
+   Redirect URI: http://127.0.0.1:3000/callback/spotify
    ```
 
 3. **Select APIs**
@@ -47,8 +47,8 @@ Follow these steps to create your Spotify Developer account and configure the ap
 2. **Set App Settings**
    - Click "Edit Settings"
    - Add these **Redirect URIs**:
-     - `http://localhost:5250/callback/spotify`
-     - `http://localhost:5286/callback/spotify` (for client-side auth)
+     - `http://127.0.0.1:3000/callback/spotify`
+     - `https://localhost:5287/callback/spotify` (for client-side auth)
    - Save changes
 
 3. **Development Mode**
@@ -81,7 +81,7 @@ Follow these steps to create your Spotify Developer account and configure the ap
      "Spotify": {
        "ClientId": "your-client-id-here",
        "ClientSecret": "your-client-secret-here",
-       "RedirectUri": "http://localhost:5250/callback/spotify"
+       "RedirectUri": "http://127.0.0.1:3000/callback/spotify"
      }
    }
    ```

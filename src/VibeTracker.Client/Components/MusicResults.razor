@@ -1,0 +1,203 @@
+@using System.Net.Http.Json
+@using VibeTracker.Shared
+@inject HttpClient Http
+
+<div class="music-results-container">
+    @if (isLoading)
+    {
+        <div class="text-center py-4">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading music...</span>
+            </div>
+            <div class="mt-2">Finding music that matches your vibe...</div>
+        </div>
+    }
+    else if (tracks?.Any() == true || playlists?.Any() == true)
+    {
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-spotify text-success me-2"></i>
+                    Music for @VibeType
+                </h5>
+            </div>
+            <div class="card-body">
+                <!-- Tracks Section -->
+                @if (tracks?.Any() == true)
+                {
+                    <h6 class="text-muted mb-3">
+                        <i class="bi bi-music-note me-2"></i>
+                        Recommended Tracks
+                    </h6>
+                    <div class="row">
+                        @foreach (var track in tracks.Take(6))
+                        {
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body p-3">
+                                        <div class="d-flex">
+                                            @if (!string.IsNullOrEmpty(track.AlbumImageUrl))
+                                            {
+                                                <img src="@track.AlbumImageUrl" alt="@track.Album" class="me-3" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px;">
+                                            }
+                                            else
+                                            {
+                                                <div class="me-3 bg-light d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border-radius: 4px;">
+                                                    <i class="bi bi-music-note text-muted"></i>
+                                                </div>
+                                            }
+                                            <div class="flex-grow-1">
+                                                <h6 class="card-title mb-1" style="font-size: 0.9rem;">@track.Name</h6>
+                                                <p class="card-text text-muted mb-1" style="font-size: 0.8rem;">@track.Artist</p>
+                                                <p class="card-text text-muted mb-0" style="font-size: 0.75rem;">@track.Album</p>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            @if (!string.IsNullOrEmpty(track.PreviewUrl))
+                                            {
+                                                <button class="btn btn-sm btn-outline-success" @onclick="() => PlayPreview(track.PreviewUrl)">
+                                                    <i class="bi bi-play-fill"></i> Preview
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted small">No preview</span>
+                                            }
+                                            <a href="@track.SpotifyUrl" target="_blank" class="btn btn-sm btn-success">
+                                                <i class="bi bi-spotify"></i> Open
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+
+                <!-- Playlists Section -->
+                @if (playlists?.Any() == true)
+                {
+                    <h6 class="text-muted mb-3 mt-4">
+                        <i class="bi bi-collection-play me-2"></i>
+                        Related Playlists
+                    </h6>
+                    <div class="row">
+                        @foreach (var playlist in playlists.Take(3))
+                        {
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <div class="d-flex">
+                                            @if (!string.IsNullOrEmpty(playlist.ImageUrl))
+                                            {
+                                                <img src="@playlist.ImageUrl" alt="@playlist.Name" class="me-3" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">
+                                            }
+                                            else
+                                            {
+                                                <div class="me-3 bg-light d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 4px;">
+                                                    <i class="bi bi-collection-play text-muted"></i>
+                                                </div>
+                                            }
+                                            <div class="flex-grow-1">
+                                                <h6 class="card-title mb-1">@playlist.Name</h6>
+                                                <p class="card-text text-muted mb-1" style="font-size: 0.8rem;">@playlist.TrackCount tracks</p>
+                                                <p class="card-text text-muted mb-0" style="font-size: 0.75rem;">by @playlist.Owner</p>
+                                            </div>
+                                        </div>
+                                        <div class="mt-3">
+                                            <a href="@playlist.SpotifyUrl" target="_blank" class="btn btn-sm btn-success w-100">
+                                                <i class="bi bi-spotify me-2"></i>Open in Spotify
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            @errorMessage
+        </div>
+    }
+</div>
+
+<!-- Audio element for previews -->
+<audio id="previewAudio" controls style="display: none;"></audio>
+
+@code {
+    [Parameter] public string VibeType { get; set; } = string.Empty;
+    [Parameter] public bool ShowResults { get; set; } = false;
+
+    private IEnumerable<SpotifyTrack>? tracks;
+    private IEnumerable<SpotifyPlaylist>? playlists;
+    private bool isLoading = false;
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (ShowResults && !string.IsNullOrEmpty(VibeType))
+        {
+            await SearchMusic();
+        }
+    }
+
+    private async Task SearchMusic()
+    {
+        isLoading = true;
+        errorMessage = string.Empty;
+        tracks = null;
+        playlists = null;
+
+        try
+        {
+            var response = await Http.GetFromJsonAsync<SpotifySearchResponse>($"/spotify/search/{VibeType}");
+            
+            if (response != null)
+            {
+                tracks = response.Tracks;
+                playlists = response.Playlists;
+
+                if (tracks?.Any() != true && playlists?.Any() != true)
+                {
+                    errorMessage = "No music found for this vibe. Try connecting to Spotify or check your connection.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to search music: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task PlayPreview(string previewUrl)
+    {
+        try
+        {
+            var audio = await JSRuntime.InvokeAsync<IJSObjectReference>("document.getElementById", "previewAudio");
+            await audio.InvokeVoidAsync("setAttribute", "src", previewUrl);
+            await audio.InvokeVoidAsync("play");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to play preview: {ex.Message}";
+        }
+    }
+
+    public class SpotifySearchResponse
+    {
+        public IEnumerable<SpotifyTrack> Tracks { get; set; } = new List<SpotifyTrack>();
+        public IEnumerable<SpotifyPlaylist> Playlists { get; set; } = new List<SpotifyPlaylist>();
+    }
+}
+
+@inject IJSRuntime JSRuntime

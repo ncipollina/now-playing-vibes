@@ -49,7 +49,7 @@
                                 }
                                 else
                                 {
-                                    <span>Submit Vibe</span>
+                                    <span>Submit Vibe & Find Music</span>
                                 }
                             </button>
                         </div>
@@ -76,6 +76,16 @@
             </div>
         </div>
     </div>
+
+    <!-- Music Results Section -->
+    @if (showMusicResults)
+    {
+        <div class="row justify-content-center mt-4">
+            <div class="col-md-10">
+                <MusicResults VibeType="@vibeRequest.VibeType" ShowResults="@showMusicResults" />
+            </div>
+        </div>
+    }
 </div>
 
 @code {
@@ -83,6 +93,7 @@
     private bool isSubmitting = false;
     private string successMessage = string.Empty;
     private string errorMessage = string.Empty;
+    private bool showMusicResults = false;
 
     private async Task HandleSubmit()
     {
@@ -102,11 +113,12 @@
             
             if (response.IsSuccessStatusCode)
             {
-                successMessage = "Vibe submitted successfully! 🎉 Redirecting to home...";
-                vibeRequest = new VibeRequest(); // Reset form
+                successMessage = "Vibe submitted successfully! 🎉 Check out some music recommendations below!";
+                showMusicResults = true;
                 
-                // Auto-navigate to home after 2 seconds
-                await Task.Delay(2000);
+                // Don't reset form or navigate - let user see music results
+                // Auto-navigate to home after 10 seconds to give time to explore music
+                await Task.Delay(10000);
                 Navigation.NavigateTo("/");
             }
             else

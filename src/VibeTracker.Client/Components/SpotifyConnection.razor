@@ -1,0 +1,135 @@
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<div class="spotify-connection-container">
+    @if (isLoading)
+    {
+        <div class="text-center">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="mt-2">Checking Spotify connection...</div>
+        </div>
+    }
+    else if (isConnected)
+    {
+        <div class="alert alert-success d-flex align-items-center">
+            <i class="bi bi-spotify me-2" style="font-size: 1.2em;"></i>
+            <div>
+                <strong>Connected to Spotify!</strong>
+                <div class="small">You can now discover music based on your vibes.</div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <i class="bi bi-spotify text-success" style="font-size: 3rem;"></i>
+                <h5 class="card-title mt-3">Connect to Spotify</h5>
+                <p class="card-text">
+                    Connect your Spotify account to discover music that matches your vibes and share your music taste with your team.
+                </p>
+                <button class="btn btn-success btn-lg" @onclick="ConnectToSpotify" disabled="@isConnecting">
+                    @if (isConnecting)
+                    {
+                        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                        <span>Connecting...</span>
+                    }
+                    else
+                    {
+                        <i class="bi bi-spotify me-2"></i>
+                        <span>Connect to Spotify</span>
+                    }
+                </button>
+                <div class="mt-3">
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Premium users can play full tracks. Free users get 30-second previews.
+                    </small>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @errorMessage
+            <button type="button" class="btn-close" @onclick="() => errorMessage = string.Empty"></button>
+        </div>
+    }
+</div>
+
+@code {
+    private bool isConnected = false;
+    private bool isLoading = true;
+    private bool isConnecting = false;
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckSpotifyConnection();
+    }
+
+    private async Task CheckSpotifyConnection()
+    {
+        try
+        {
+            isLoading = true;
+            var response = await Http.GetFromJsonAsync<SpotifyUserResponse>("/spotify/user");
+            isConnected = response?.IsConnected ?? false;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to check Spotify connection: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ConnectToSpotify()
+    {
+        try
+        {
+            isConnecting = true;
+            errorMessage = string.Empty;
+
+            var response = await Http.GetFromJsonAsync<SpotifyAuthResponse>("/spotify/auth");
+            
+            if (response?.AuthUrl != null)
+            {
+                // Navigate to Spotify authorization URL
+                Navigation.NavigateTo(response.AuthUrl, true);
+            }
+            else
+            {
+                errorMessage = "Failed to get Spotify authorization URL";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to connect to Spotify: {ex.Message}";
+        }
+        finally
+        {
+            isConnecting = false;
+        }
+    }
+
+    public class SpotifyUserResponse
+    {
+        public bool IsConnected { get; set; }
+        public bool HasToken { get; set; }
+    }
+
+    public class SpotifyAuthResponse
+    {
+        public string AuthUrl { get; set; } = string.Empty;
+        public string State { get; set; } = string.Empty;
+    }
+}

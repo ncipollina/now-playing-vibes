@@ -91,14 +91,14 @@ CREATE TABLE IF NOT EXISTS Vibes (
 - Repository and endpoints are registered in `Program.cs`
 - `NavMenu.razor` includes navigation links for Submit Vibe and View Vibes pages
 - SQLite database file (`vibes.db`) is created in the server project directory
-- Client connects to server on `http://localhost:5250` (configurable in `Program.cs`)
-- Server runs on port 5249 by default (configurable in `launchSettings.json`)
+- Client connects to server on `http://127.0.0.1:3000` (configurable in `Program.cs`)
+- Server runs on port 3000 for HTTP by default (configurable in `launchSettings.json`)
 
 ## Running the Application
 
 1. **Start the Server**: `dotnet run --project src/VibeTracker.Server`
 2. **Start the Client**: `dotnet run --project src/VibeTracker.Client`
-3. **Access the App**: Navigate to the client URL (typically `http://localhost:5285`)
+3. **Access the App**: Navigate to the client URL (typically `https://localhost:5287`)
 
 ## Features Implemented
 
