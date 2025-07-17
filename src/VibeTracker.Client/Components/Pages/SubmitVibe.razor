@@ -1,0 +1,122 @@
+@page "/submit-vibe"
+@using System.Net.Http.Json
+@using VibeTracker.Shared
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<PageTitle>Submit Vibe</PageTitle>
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">🎧 Submit Your Vibe</h3>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="@vibeRequest" OnValidSubmit="@HandleSubmit">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
+
+                        <div class="mb-3">
+                            <label for="vibeType" class="form-label">Vibe Type</label>
+                            <InputSelect @bind-Value="vibeRequest.VibeType" class="form-select" id="vibeType">
+                                <option value="">Select a vibe...</option>
+                                <option value="Lo-fi">🎵 Lo-fi</option>
+                                <option value="Metal">🤘 Metal</option>
+                                <option value="Synthwave">🌆 Synthwave</option>
+                                <option value="Classical">🎼 Classical</option>
+                                <option value="Jazz">🎷 Jazz</option>
+                                <option value="Rock">🎸 Rock</option>
+                                <option value="Electronic">🎛️ Electronic</option>
+                                <option value="Indie">🎤 Indie</option>
+                                <option value="Hip-Hop">🎤 Hip-Hop</option>
+                                <option value="Folk">🪕 Folk</option>
+                            </InputSelect>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="message" class="form-label">What are you listening to or doing?</label>
+                            <InputTextArea @bind-Value="vibeRequest.Message" class="form-control" id="message" rows="3" placeholder="Share your current vibe..."></InputTextArea>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" disabled="@isSubmitting">
+                                @if (isSubmitting)
+                                {
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    <span>Submitting...</span>
+                                }
+                                else
+                                {
+                                    <span>Submit Vibe</span>
+                                }
+                            </button>
+                        </div>
+                    </EditForm>
+
+                    @if (!string.IsNullOrEmpty(successMessage))
+                    {
+                        <div class="alert alert-success mt-3" role="alert">
+                            @successMessage
+                        </div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="alert alert-danger mt-3" role="alert">
+                            @errorMessage
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private VibeRequest vibeRequest = new();
+    private bool isSubmitting = false;
+    private string successMessage = string.Empty;
+    private string errorMessage = string.Empty;
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(vibeRequest.VibeType) || string.IsNullOrWhiteSpace(vibeRequest.Message))
+        {
+            errorMessage = "Please select a vibe type and enter a message.";
+            return;
+        }
+
+        isSubmitting = true;
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("/vibes", vibeRequest);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                successMessage = "Vibe submitted successfully! 🎉";
+                vibeRequest = new VibeRequest(); // Reset form
+                
+                // Auto-navigate to view vibes after 2 seconds
+                await Task.Delay(2000);
+                Navigation.NavigateTo("/view-vibes");
+            }
+            else
+            {
+                errorMessage = "Failed to submit vibe. Please try again.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}

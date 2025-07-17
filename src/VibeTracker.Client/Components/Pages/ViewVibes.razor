@@ -1,0 +1,141 @@
+@page "/view-vibes"
+@using System.Net.Http.Json
+@using VibeTracker.Shared
+@inject HttpClient Http
+
+<PageTitle>View Vibes</PageTitle>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>🎵 Vibe History</h2>
+                <button class="btn btn-primary" @onclick="LoadVibes">
+                    <span class="bi bi-arrow-clockwise"></span> Refresh
+                </button>
+            </div>
+
+            @if (isLoading)
+            {
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading vibes...</p>
+                </div>
+            }
+            else if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @errorMessage
+                </div>
+            }
+            else if (vibes?.Any() == true)
+            {
+                <div class="row">
+                    @foreach (var vibe in vibes)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title">
+                                            @GetVibeEmoji(vibe.VibeType) @vibe.VibeType
+                                        </h5>
+                                        <small class="text-muted">
+                                            @GetRelativeTime(vibe.Timestamp)
+                                        </small>
+                                    </div>
+                                    <p class="card-text">@vibe.Message</p>
+                                </div>
+                                <div class="card-footer bg-transparent">
+                                    <small class="text-muted">
+                                        @vibe.Timestamp.ToString("MMM dd, yyyy 'at' HH:mm")
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-music-note-beamed" style="font-size: 4rem; color: #6c757d;"></i>
+                    </div>
+                    <h4 class="text-muted">No vibes yet!</h4>
+                    <p class="text-muted">Be the first to share your vibe.</p>
+                    <a href="/submit-vibe" class="btn btn-primary">
+                        Submit Your First Vibe
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private IEnumerable<VibeEntry>? vibes;
+    private bool isLoading = true;
+    private string errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadVibes();
+    }
+
+    private async Task LoadVibes()
+    {
+        isLoading = true;
+        errorMessage = string.Empty;
+
+        try
+        {
+            vibes = await Http.GetFromJsonAsync<IEnumerable<VibeEntry>>("/vibes");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load vibes: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetVibeEmoji(string vibeType)
+    {
+        return vibeType switch
+        {
+            "Lo-fi" => "🎵",
+            "Metal" => "🤘",
+            "Synthwave" => "🌆",
+            "Classical" => "🎼",
+            "Jazz" => "🎷",
+            "Rock" => "🎸",
+            "Electronic" => "🎛️",
+            "Indie" => "🎤",
+            "Hip-Hop" => "🎤",
+            "Folk" => "🪕",
+            _ => "🎵"
+        };
+    }
+
+    private string GetRelativeTime(DateTime timestamp)
+    {
+        var now = DateTime.UtcNow;
+        var timeSpan = now - timestamp;
+
+        if (timeSpan.TotalMinutes < 1)
+            return "Just now";
+        if (timeSpan.TotalMinutes < 60)
+            return $"{(int)timeSpan.TotalMinutes} min ago";
+        if (timeSpan.TotalHours < 24)
+            return $"{(int)timeSpan.TotalHours} hr ago";
+        if (timeSpan.TotalDays < 7)
+            return $"{(int)timeSpan.TotalDays} day{(timeSpan.TotalDays >= 2 ? "s" : "")} ago";
+        
+        return timestamp.ToString("MMM dd, yyyy");
+    }
+}
