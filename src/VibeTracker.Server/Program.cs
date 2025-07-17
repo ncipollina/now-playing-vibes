@@ -7,12 +7,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services
 builder.Services.AddFastEndpoints();
 
+// Add distributed cache (required for sessions)
+builder.Services.AddDistributedMemoryCache();
+
+// Add memory cache for OAuth state storage (more reliable than sessions for OAuth)
+builder.Services.AddMemoryCache();
+
 // Add session support for Spotify tokens
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax; // Better for OAuth flows
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest; // Allow HTTP for development
 });
 
 // Configure SQLite connection string

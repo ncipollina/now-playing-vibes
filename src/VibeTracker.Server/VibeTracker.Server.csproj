@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\VibeTracker.Shared\VibeTracker.Shared.csproj" />
@@ -15,6 +15,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>a5c0a3bd-ba1b-4194-bf2d-e3a47cb0b131</UserSecretsId>
   </PropertyGroup>
 
 </Project>
